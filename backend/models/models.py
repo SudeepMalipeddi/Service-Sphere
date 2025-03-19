@@ -84,7 +84,8 @@ class Customer(db.Model):
             'phone': self.user.phone,
             'address': self.address,
             'pincode': self.pincode,
-            'registered_on': self.registered_on.isoformat() if self.registered_on else None
+            'registered_on': self.registered_on.isoformat() if self.registered_on else None,
+            'user': self.user.to_dict()
         }
 
 
@@ -158,6 +159,7 @@ class Professional(db.Model):
     
     def to_dict(self):
         avg_rating = self.get_average_rating()
+        base_url = 'http://localhost:5000/static/uploads/documents/'  # Adjust this based on your server configuration
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -169,9 +171,13 @@ class Professional(db.Model):
             'bio': self.bio,
             'years_experience': self.years_experience,
             'verification_status': self.verification_status,
-            'documents_url': self.documents_url,
             'registered_on': self.registered_on.isoformat() if self.registered_on else None,
-            'rating': avg_rating
+            'rating': avg_rating,
+            'documents_url': [
+            f"{base_url}/{doc}" for doc in self.documents_url.split(',')
+        ] if self.documents_url else [],
+            'is_active': bool(self.user.is_active),
+            'user': self.user.to_dict() 
         }
 
 

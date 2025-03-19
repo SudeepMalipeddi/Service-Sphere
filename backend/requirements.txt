@@ -1,2 +1,7 @@
 Flask
-flask-cors
+Flask-Cors
+Flask-Restful
+Flask-SQLAlchemy
+Flask-Login
+Flask-JWT-Extended
+redis
