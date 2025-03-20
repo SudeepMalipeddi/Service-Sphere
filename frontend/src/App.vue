@@ -1,93 +1,52 @@
-<script>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-
-export default {
-  name: 'App',
-  data() {
-    return {
-      message: 'Loading...'
-    }
-  },
-  created() {
-    fetch('http://localhost:5000/api/hello')
-      .then(response => response.json())
-      .then(data => {
-        this.message = data.message
-      })
-      .catch(err => {
-        this.message = 'Error fetching message'
-      })
-  }
-}
-
-</script>
-
 <template>
-  {{ message }}
+
+  <div id="app">
+    <Navbar v-if="isAuthenticated" />
+
+    <div class="container mt-4">
+
+      <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ errorMessage }}
+        <button type="button" class="btn-close" @click="clearError"></button>
+      </div>
+
+      <div v-if="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close" @click="clearSuccess"></button>
+      </div>
+
+      <router-view />
+    </div>
+
+    <!-- <Footer /> -->
+  </div>
 
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
+<script setup>
+import Navbar from '@/components/common/Navbar.vue';
+import Footer from './components/common/Footer.vue';
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
+import { useAuthStore } from './stores/auth';
+import { computed, onMounted } from 'vue';
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
+const authStore = useAuthStore();
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const errorMessage = computed(() => authStore.errorMessage)
+const successMessage = computed(() => authStore.successMessage)
 
-nav a:first-of-type {
-  border: 0;
-}
+const clearError = authStore.clearError
+const clearSuccess = authStore.clearSuccess
+const checkAuth = authStore.checkAuth
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+onMounted(() => {
+  checkAuth()
+})
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+</script>
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
+<style></style>
