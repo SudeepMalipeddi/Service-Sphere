@@ -14,6 +14,10 @@ from resources.auth import UserRegister, UserLogin, UserRefresh, UserLogout
 from resources.customer import CustomerResource, CustomerListResource
 from resources.professional import ProfessionalResource, ProfessionalListResource, ProfessionalVerificationResource
 from resources.service import ServiceResource, ServiceListResource
+from resources.service_request import ServiceRequestResource,ServiceRequestActionResource,ServiceRequestListResource
+from resources.notification import NotificationResource, NotificationListResource
+
+
 
 def create_app(test_config=None):
     app = Flask(__name__,static_folder='static')
@@ -75,6 +79,16 @@ def create_app(test_config=None):
     # Service endpoints
     api.add_resource(ServiceListResource, '/api/services')
     api.add_resource(ServiceResource, '/api/services/<int:service_id>')
+
+    # Service Request endpoints
+    api.add_resource(ServiceRequestListResource, '/api/service_requests')
+    api.add_resource(ServiceRequestResource, '/api/service-requests/<int:request_id>')
+    api.add_resource(ServiceRequestActionResource, '/api/service-requests/<int:request_id>/action')
+
+    # Notification endpoints
+    api.add_resource(NotificationListResource, '/api/notifications')
+    api.add_resource(NotificationResource, '/api/notifications/<int:notification_id>')
+
 
 
     with app.app_context():

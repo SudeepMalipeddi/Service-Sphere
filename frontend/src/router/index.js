@@ -11,7 +11,7 @@ import AdminCustomersView from '@/views/admin/CustomerView.vue'
 import AdminProfessionalsView from '@/views/admin/ProfessionalsView.vue'
 import ProfessionalProfileView from "@/views/professional/ProfileView.vue"
 import ProfessionalDashboardView from "@/views/professional/DashboardView.vue"
-
+import NotificationsView from '@/views/NotificationsView.vue'
 
 const routes = [
   {
@@ -29,6 +29,12 @@ const routes = [
     name: 'register',
     component: RegisterView,
     meta: { requiresGuest: true }
+  },
+  {
+    path: '/notifications',
+    name: 'notifications',
+    component: NotificationsView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/admin',
