@@ -49,19 +49,14 @@ class ServiceResource(Resource):
     
     @jwt_required()
     @admin_required
-
-    ### Check if professionals need to update their service_id if service is deleted
     def delete(self,service_id):
         service = Service.query.get_or_404(service_id)
-
         professionals = Professional.query.filter_by(service_id=service_id).all()
-
         if professionals:
             return {"message": "Cannot delete service. There are professionals associated with this service."}, 400
         
         try:
             service.delete_from_db()
-
             return {"message": "Service deleted successfully"}, 200
         
         except Exception as e:
@@ -72,10 +67,9 @@ class ServiceListResource(Resource):
 
     def get(self):
         search_query = request.args.get('q','')
-        pincode = request.args.get('pincode','')
-        show_inactive = request.args.get('show_inactive','false').lower()
-
-
+        show_inactive = request.args.get('show_inactive','false').lower() == 'true'
+        show_unavailable = request.args.get('show_unavailable','false').lower() == 'true'
+        
         query = Service.query
 
         if not show_inactive:
@@ -88,9 +82,15 @@ class ServiceListResource(Resource):
             ))
 
         services = query.all()
-        result = [service.to_dict() for service in services]
+        
+        result = []
+        for service in services:
+            service_dict = service.to_dict()
+            
+            if show_unavailable or service.has_verified_professionals():
+                result.append(service_dict)
 
-        return {"services": result},200
+        return {"services": result}, 200
     
     @jwt_required()
     @admin_required

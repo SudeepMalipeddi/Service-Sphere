@@ -14,10 +14,9 @@ from resources.auth import UserRegister, UserLogin, UserRefresh, UserLogout
 from resources.customer import CustomerResource, CustomerListResource
 from resources.professional import ProfessionalResource, ProfessionalListResource, ProfessionalVerificationResource
 from resources.service import ServiceResource, ServiceListResource
-from resources.service_request import ServiceRequestResource,ServiceRequestActionResource,ServiceRequestListResource
+from resources.service_request import ServiceRequestResource,ServiceRequestActionResource,ServiceRequestListResource,RejectedServiceRequest,RejectedServiceRequestResource
 from resources.notification import NotificationResource, NotificationListResource
-
-
+from resources.review import ReviewListResource,ReviewResource
 
 def create_app(test_config=None):
     app = Flask(__name__,static_folder='static')
@@ -75,15 +74,23 @@ def create_app(test_config=None):
     api.add_resource(ProfessionalListResource, '/api/professionals')
     api.add_resource(ProfessionalResource, '/api/professionals/<int:professional_id>')
     api.add_resource(ProfessionalVerificationResource, '/api/professionals/<int:professional_id>/verify')
+    
+    # Review
+    api.add_resource(ReviewListResource, '/api/reviews')
+    api.add_resource(ReviewResource, '/api/reviews/<int:review_id>')
+
 
     # Service endpoints
     api.add_resource(ServiceListResource, '/api/services')
     api.add_resource(ServiceResource, '/api/services/<int:service_id>')
 
     # Service Request endpoints
-    api.add_resource(ServiceRequestListResource, '/api/service_requests')
+    api.add_resource(ServiceRequestListResource, '/api/service-requests')
     api.add_resource(ServiceRequestResource, '/api/service-requests/<int:request_id>')
     api.add_resource(ServiceRequestActionResource, '/api/service-requests/<int:request_id>/action')
+
+    # Rejected Service Request endpoints
+    api.add_resource(RejectedServiceRequestResource, '/api/rejected-requests', '/api/rejected-requests/<int:request_id>')
 
     # Notification endpoints
     api.add_resource(NotificationListResource, '/api/notifications')

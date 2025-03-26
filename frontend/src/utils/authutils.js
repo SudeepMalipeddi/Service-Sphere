@@ -8,9 +8,6 @@ export function isAuthenticated() {
     if (!token) {
         return false
     }
-
-    // Additional logic to check if the token is expired
-
 }
 
 export function getRefreshToken() {

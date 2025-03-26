@@ -7,16 +7,11 @@
                     <p class="text-muted">Your one-stop platform for all household services</p>
                 </div>
                 <div class="col-md-3">
-                    <h5>Links</h5>
-                    <ul class="list-unstyled">
-                        <li><router-link to="/">Home</router-link></li>
-                        <li><router-link to="/services">Services</router-link></li>
-                    </ul>
                 </div>
                 <div class="col-md-3">
                     <h5>Contact</h5>
                     <address>
-                        <p class="mb-0">Email: support@example.com</p>
+                        <p class="mb-0">Email: admin@example.com</p>
                         <p class="mb-0">Phone: +91 1234567890</p>
                     </address>
                 </div>

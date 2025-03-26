@@ -112,8 +112,18 @@ class Service(db.Model):
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
+    
+    def has_verified_professionals(self):
+        return any(
+            professional.verification_status == 'approved' and professional.user.is_active
+        for professional in self.professionals
+        )
+    
+    def is_available(self):
+        return self.is_active and self.has_verified_professionals()
         
     def to_dict(self):
+        has_verified = self.has_verified_professionals()
         return {
             'id': self.id,
             'name': self.name,
@@ -121,7 +131,9 @@ class Service(db.Model):
             'estimated_time': self.estimated_time,
             'description': self.description,
             'is_active': self.is_active,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'has_verified_professionals': has_verified,
+            'is_available': self.is_active and has_verified
         }
 
 
@@ -215,20 +227,29 @@ class ServiceRequest(db.Model):
         db.session.commit()
         
     def to_dict(self):
+        review = Review.query.filter_by(service_request_id=self.id).first()
         return {
             'id': self.id,
             'customer_id': self.customer_id,
             'customer_name': self.customer.user.name,
+            'customer_address': self.customer.address,
+            'customer_phone': self.customer.user.phone,
             'service_id': self.service_id,
             'service_name': self.service.name,
+            'base_price': self.service.base_price,
+            'estimated_time': self.service.estimated_time,
             'professional_id': self.professional_id,
             'professional_name': self.professional.user.name if self.professional else None,
+            'professional_phone': self.professional.user.phone if self.professional else None,
+            'professional_rating': self.professional.get_average_rating() if self.professional else None,
             'request_date': self.request_date.isoformat() if self.request_date else None,
             'scheduled_date': self.scheduled_date.isoformat() if self.scheduled_date else None,
             'completion_date': self.completion_date.isoformat() if self.completion_date else None,
             'status': self.status,
             'remarks': self.remarks,
-            'last_updated': self.last_updated.isoformat() if self.last_updated else None
+            'last_updated': self.last_updated.isoformat() if self.last_updated else None,
+            'has_review': review is not None,
+            'reviews': [review.to_dict() for review in self.reviews],
         }
 
 
@@ -257,7 +278,8 @@ class RejectedServiceRequest(db.Model):
             'professional_id': self.professional_id,
             'professional_name': self.professional.user.name,
             'reason': self.reason,
-            'rejected_at': self.rejected_at.isoformat() if self.rejected_at else None
+            'rejected_at': self.rejected_at.isoformat() if self.rejected_at else None,
+            'is_own_rejection': False
         }
 
 
@@ -289,6 +311,7 @@ class Review(db.Model):
         return {
             'id': self.id,
             'service_request_id': self.service_request_id,
+            'service_name': self.service_request.service.name,
             'customer_id': self.customer_id,
             'customer_name': self.customer.user.name,
             'professional_id': self.professional_id,

@@ -8,7 +8,6 @@ from flask import request
 class CustomerResource(Resource):
 
     @jwt_required()
-    
     def get(self, customer_id):
         current_user_id = get_jwt_identity()
         user = User.query.get_or_404(current_user_id)
@@ -26,7 +25,16 @@ class CustomerResource(Resource):
         customer_data['total_requests'] = total_requests
         customer_data['completed_requests'] = completed_requests
 
-        return {"customer": customer_data}, 200
+        return {
+                "id": customer.id,
+                "user_id": customer.user_id,
+                "name": customer.user.name,
+                "email": customer.user.email,
+                "phone": customer.user.phone,
+                "address": customer.address,
+                "pincode": customer.pincode,
+                "created_at": customer.user.created_at.isoformat() if customer.user.created_at else None
+            }
     
     @jwt_required()
     def put(self,customer_id):

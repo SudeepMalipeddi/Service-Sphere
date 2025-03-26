@@ -16,9 +16,15 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <div class="form-check form-switch">
+                        <div class="form-check form-switch me-3 d-inline-block">
                             <input class="form-check-input" type="checkbox" id="showInactive" v-model="showInactive">
                             <label class="form-check-label" for="showInactive">Show Inactive Services</label>
+                        </div>
+                        <div class="form-check form-switch d-inline-block">
+                            <input class="form-check-input" type="checkbox" id="showUnavailable"
+                                v-model="showUnavailable">
+                            <label class="form-check-label" for="showUnavailable">Show Services Without Verified
+                                Professionals</label>
                         </div>
                     </div>
 
@@ -56,8 +62,9 @@
                                 <th>Name</th>
                                 <th>Base Price</th>
                                 <th>Estimated Time</th>
-                                <th>Description</th>
                                 <th>Status</th>
+                                <th>Verified Professionals</th>
+                                <th>Customer Availability</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -67,11 +74,24 @@
                                 <td>{{ service.name }}</td>
                                 <td>{{ formatPrice(service.base_price) }}</td>
                                 <td>{{ formatDuration(service.estimated_time) }}</td>
-                                <td>{{ service.description }}</td>
                                 <td>
                                     <span :class="service.is_active ? 'badge bg-success' : 'badge bg-danger'">
                                         {{ service.is_active ? 'Active' : 'Inactive' }}
                                     </span>
+                                </td>
+                                <td>
+                                    <span
+                                        :class="service.has_verified_professionals ? 'badge bg-success' : 'badge bg-danger'">
+                                        {{ service.has_verified_professionals ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span :class="service.is_available ? 'badge bg-success' : 'badge bg-danger'">
+                                        {{ service.is_available ? 'Available' : 'Unavailable' }}
+                                    </span>
+                                    <small v-if="!service.is_available" class="d-block text-muted">
+                                        {{ !service.is_active ? 'Service is inactive' : 'No verified professionals' }}
+                                    </small>
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-info me-2" @click="openServiceForm(service)">
@@ -82,7 +102,7 @@
                                         @click="toggleServiceStatus(service)">
                                         {{ service.is_active ? 'Deactivate' : 'Activate' }}
                                     </button>
-                                    <button class="btn btn-sm btn-danger" @click="deleteService(service.id)">
+                                    <button class="btn btn-sm btn-danger ms-2" @click="deleteService(service.id)">
                                         Delete
                                     </button>
                                 </td>
@@ -92,8 +112,6 @@
                 </div>
             </div>
         </div>
-
-        {{ }}
 
         <div v-if="showServiceForm" class="card mt-4">
             <div class="card-body">
@@ -125,6 +143,12 @@
                         <label class="form-check-label">Active</label>
                     </div>
 
+                    <div v-if="isEditing && !serviceForm.has_verified_professionals" class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        This service will not be available to customers until at least one professional is verified for
+                        this service.
+                    </div>
+
                     <div class="d-flex justify-content-end">
                         <button type="button" class="btn btn-secondary me-2" @click="closeServiceForm">
                             Cancel
@@ -139,13 +163,11 @@
     </div>
 </template>
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useServiceStore } from "@/stores/services";
 import { useAdminStore } from "@/stores/admin";
 import { formatPrice, formatDuration } from "@/utils/formatters";
 import { isValidPrice } from "@/utils/validators";
-
-
 
 const serviceStore = useServiceStore();
 const adminStore = useAdminStore();
@@ -155,40 +177,54 @@ const deleteError = ref("");
 
 const searchQuery = ref("");
 const showInactive = ref(false);
+const showUnavailable = ref(false);
 const isEditing = ref(false);
 const selectedService = ref(null);
 const formErrors = ref({});
 const formSubmitting = ref(false);
 const showServiceForm = ref(false);
 
-
 const serviceForm = ref({
     name: "",
     base_price: 0,
     estimated_time: 60,
     description: "",
-    is_active: true
+    is_active: true,
+    has_verified_professionals: false
 });
 
+
+watch([showInactive, showUnavailable], () => {
+    serviceStore.setFilterOptions({
+        showInactive: showInactive.value,
+        showUnavailable: showUnavailable.value
+    });
+});
 
 onMounted(async () => {
-    await Promise.all([
-        serviceStore.fetchServices({ show_inactive: true }),
-        adminStore.fetchProfessionals()
-    ]);
+    loading.value = true;
+    try {
+
+        serviceStore.setFilterOptions({
+            showInactive: true,
+            showUnavailable: true
+        });
+
+        await Promise.all([
+            serviceStore.fetchServices({ show_inactive: true, show_unavailable: true }),
+            adminStore.fetchProfessionals()
+        ]);
+
+
+        showInactive.value = true;
+        showUnavailable.value = true;
+    } finally {
+        loading.value = false;
+    }
 });
 
-
 const filteredServices = computed(() => {
-    return serviceStore.services.filter(service => {
-        if (!showInactive.value && !service.is_active) return false;
-        if (searchQuery.value) {
-            const query = searchQuery.value.toLowerCase();
-            return service.name.toLowerCase().includes(query) ||
-                service.description?.toLowerCase().includes(query);
-        }
-        return true;
-    });
+    return serviceStore.filteredServices;
 });
 
 const openServiceForm = (service = null) => {
@@ -206,12 +242,12 @@ const openServiceForm = (service = null) => {
             base_price: 0,
             estimated_time: 60,
             description: "",
-            is_active: true
+            is_active: true,
+            has_verified_professionals: false
         };
     }
     showServiceForm.value = true;
 };
-
 
 const closeServiceForm = () => {
     showServiceForm.value = false;
@@ -233,7 +269,6 @@ const validateForm = () => {
     return Object.keys(formErrors.value).length === 0;
 };
 
-
 const saveService = async () => {
     if (!validateForm()) return;
 
@@ -242,62 +277,44 @@ const saveService = async () => {
     try {
         if (isEditing.value) {
             await serviceStore.updateExistingService(selectedService.value.id, serviceForm.value);
-
         } else {
             await serviceStore.createNewService(serviceForm.value);
-
         }
         closeServiceForm();
     } catch (error) {
         console.error("Save service error:", error);
-
     } finally {
         formSubmitting.value = false;
     }
 };
-
 
 const toggleServiceStatus = async (service) => {
     try {
         await serviceStore.updateExistingService(service.id, { is_active: !service.is_active });
-
     } catch (error) {
         console.error("Toggle service status error:", error);
-
     }
 };
 
-onMounted(async () => {
-    loading.value = true;
-    try {
-        await Promise.all([
-            serviceStore.fetchServices({ show_inactive: true }),
-            adminStore.fetchProfessionals()
-        ]);
-    } finally {
-        loading.value = false;
-    }
-})
-
-
 const deleteService = async (id) => {
-    formSubmitting.value = true;
-
     deleteError.value = "";
     try {
         await serviceStore.removeService(id);
-
     } catch (error) {
         deleteError.value = error.response?.data?.message || "An error occurred while deleting the service.";
         console.error("Delete service error:", error);
-
-    } finally {
-        formSubmitting.value = false;
     }
 };
 
-
 const getServiceProfessionalCount = (serviceId) => {
     return adminStore.professionals.filter(p => p.service_id === serviceId).length;
+};
+
+const getVerifiedProfessionalCount = (serviceId) => {
+    return adminStore.professionals.filter(
+        p => p.service_id === serviceId &&
+            p.verification_status === 'approved' &&
+            p.is_active
+    ).length;
 };
 </script>

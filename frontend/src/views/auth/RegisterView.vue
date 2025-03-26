@@ -146,7 +146,7 @@ const userData = ref({
     phone: '',
     address: '',
     pincode: '',
-    service_id: null, // made service_id null
+    service_id: null,
     years_experience: 0,
     bio: ''
 })
@@ -198,13 +198,15 @@ const handleRegister = async () => {
 
     try {
         await authStore.registerUser(userData.value)
-        // Redirect will be handled in the store
     } catch (error) {
         console.error('Registration error:', error)
     }
 }
 
 onMounted(() => {
-    serviceStore.fetchServices({ show_inactive: false })
+    serviceStore.fetchServices({
+        show_inactive: false,
+        show_unavailable: true
+    })
 })
 </script>

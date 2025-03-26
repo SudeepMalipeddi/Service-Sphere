@@ -1,61 +1,105 @@
 <template>
-    <div>
+    <div class="admin-customers-view">
         <h1>Manage Customers</h1>
-        <div>
-            <h2>Filters</h2>
-            <div>
-                <label for="status">Status:</label>
-                <select v-model="filters.status" id="status" @change="applyFilters">
-                    <option value="">All</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
 
-            <div>
-                <label for="search">Search</label>
-                <input type="text" id="search" v-model="filters.search" placeholder="Search by name, email, or pincode"
-                    @input="debounceSearch">
-            </div>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" class="form-select" v-model="filters.status" @change="applyFilters">
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
 
-            <button @click="clearFilters">Clear Filters</button>
-        </div>
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" id="search" class="form-control" v-model="filters.search"
+                            @input="debounceSearch" placeholder="Search by name, email, or pincode">
+                    </div>
 
-        <div v-if="loading">Loading Customers</div>
-        <div v-else-if="error">{{ error }}</div>
-
-        <div v-if="filteredCustomers.length === 0">
-            No customers found
-        </div>
-        <div v-else>
-            <div v-for="customer in filteredCustomers" :key="customer.id">
-                <h3>{{ customer.name }}</h3>
-                <p>Email: {{ customer.email }}</p>
-                <p>Phone: {{ customer.phone }}</p>
-                <p>Address: {{ customer.address }}</p>
-                <p>Pincode: {{ customer.pincode }}</p>
-                <p>Registered On: {{ formatDate(customer.registered_on) }}</p>
-                <p>Account Status: {{ customer.user.is_active ? 'Active' : 'Inactive' }}</p>
-                <p>Total Requests: {{ customer.total_requests }}</p>
-                <p>Completed Requests: {{ customer.completed_requests }}</p>
-
-                <div>
-                    <h4>Actions</h4>
-                    <button v-if="customer.user.is_active" @click="updateStatus(customer.id, 'inactive')">Deactivate
-                        Account</button>
-                    <button v-else @click="updateStatus(customer.id, 'active')">
-                        Activate Account
-                    </button>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-secondary" @click="clearFilters">
+                            Clear Filters
+                        </button>
+                    </div>
                 </div>
-                <hr>
             </div>
         </div>
 
+
+        <div v-if="loading" class="text-center my-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <div v-else-if="error" class="alert alert-danger">
+            {{ error }}
+        </div>
+
+
+        <div v-else-if="filteredCustomers.length === 0" class="alert alert-info">
+            No customers found matching your criteria.
+        </div>
+
+        <div v-else class="row">
+            <div v-for="customer in filteredCustomers" :key="customer.id" class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ customer.name }}</h5>
+                        <span class="badge" :class="customer.user.is_active ? 'bg-success' : 'bg-danger'">
+                            {{ customer.user.is_active ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Email:</div>
+                            <div class="col-8">{{ customer.email }}</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Phone:</div>
+                            <div class="col-8">{{ customer.phone || 'Not provided' }}</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Address:</div>
+                            <div class="col-8">{{ customer.address || 'Not provided' }}</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Pincode:</div>
+                            <div class="col-8">{{ customer.pincode || 'Not provided' }}</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Registered:</div>
+                            <div class="col-8">{{ formatDate(customer.registered_on) }}</div>
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer text-end">
+                        <button v-if="customer.user.is_active" class="btn btn-outline-danger"
+                            @click="updateStatus(customer.id, 'inactive')">
+                            Deactivate
+                        </button>
+                        <button v-else class="btn btn-outline-success" @click="updateStatus(customer.id, 'active')">
+                            Activate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { formatDate } from '@/utils/formatters';
 
@@ -69,17 +113,17 @@ const filters = ref({
     search: '',
 });
 
-// Debounce timer
+
 let searchTimeout = null;
 
-// Method to debounce search input
+
 const debounceSearch = () => {
-    // Clear previous timeout
+
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
 
-    // Set a new timeout of 300ms before applying filters
+
     searchTimeout = setTimeout(() => {
         applyFilters();
     }, 300);
@@ -115,8 +159,10 @@ const clearFilters = () => {
 const updateStatus = async (id, status) => {
     try {
         await adminStore.updateCustomerActiveStatus(id, status);
-        alert(`Customer account ${status === 'active' ? 'activated' : 'deactivated'} successfully`);
-        // Refresh the list after updating status
+        const message = `Customer account ${status === 'active' ? 'activated' : 'deactivated'} successfully`;
+        alert(message);
+
+
         await adminStore.fetchCustomers();
     } catch (err) {
         console.error(`Failed to ${status} customer:`, err);

@@ -23,7 +23,12 @@ export function formatTime(dateString) {
 export function formatDateTime(dateString) {
     if (!dateString) return ''
 
-    return `${formatDate(dateString)} at ${formatTime(dateString)}`
+    const date = new Date(dateString)
+    const istOffset = 5.5 * 60 * 60 * 1000
+    const istDate = new Date(date.getTime() + istOffset)
+
+
+    return `${formatDate(istDate)} at ${formatTime(istDate)}`
 }
 
 export function formatPrice(price) {

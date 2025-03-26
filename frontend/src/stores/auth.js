@@ -6,10 +6,12 @@ import axios from "axios";
 
 export const useAuthStore = defineStore('auth', {
     state: () => {
-        const user = getUser();
+        const token = getToken();
+        const user = token ? getUser() : null;
         return {
             user: user,
-            isAuthenticated: !!user?.role,
+            token: token,
+            isAuthenticated: !!(token && user),
             loading: false,
             errorMessage: null,
             successMessage: null
@@ -17,8 +19,8 @@ export const useAuthStore = defineStore('auth', {
     },
 
     getters: {
-        userRole: (state) => state.user.role || null,
-        userName: (state) => state.user.name || '',
+        userRole: (state) => state.user?.role || null,
+        userName: (state) => state.user?.name || '',
         isAdmin: (state) => state.user?.role === 'admin',
         isCustomer: (state) => state.user?.role === 'customer',
         isProfessional: (state) => state.user?.role === 'professional'
@@ -36,31 +38,37 @@ export const useAuthStore = defineStore('auth', {
                     user: response.data.user
                 })
 
-                this.user = response.data.user
-                this.isAuthenticated = true
-                this.successMessage = 'Login successful'
+                this.user = response.data.user;
+                this.token = response.data.access_token;
+                this.isAuthenticated = true;
+                this.successMessage = 'Login successful';
 
 
                 if (this.user.role === 'admin') {
-                    router.push('/admin')
+                    router.push('/admin');
+                } else if (this.user.role === 'customer') {
+                    router.push('/customer');
+                } else if (this.user.role === 'professional') {
+                    router.push('/professional');
+                } else {
+                    router.push('/');
                 }
 
-                return response
+                return response;
             } catch (error) {
-                this.errorMessage = error.response?.data?.message || 'Login failed'
-                throw error
+                this.errorMessage = error.response?.data?.message || 'Login failed';
+                throw error;
             } finally {
-                this.loading = false
+                this.loading = false;
             }
         },
         async registerUser(userData) {
-            this.loading = true
-            this.errorMessage = null
+            this.loading = true;
+            this.errorMessage = null;
 
             try {
-                const response = await register(userData)
 
-                // Store auth data
+                const response = await register(userData);
                 setAuth({
                     access_token: response.data.access_token,
                     refresh_token: response.data.refresh_token,
@@ -68,24 +76,25 @@ export const useAuthStore = defineStore('auth', {
                 })
 
                 // Update state
-                this.user = response.data.user
-                this.isAuthenticated = true
-                this.successMessage = 'Registration successful'
+                this.user = response.data.user;
+                this.isAuthenticated = true;
+                this.token = response.data.access_token;
+                this.successMessage = 'Registration successful';
 
                 if (this.user.role === 'customer') {
-                    router.push('/customer')
+                    router.push('/customer');
                 } else if (this.user.role === 'professional') {
-                    router.push('/professional')
+                    router.push('/professional');
                 } else {
-                    router.push('/')
+                    router.push('/');
                 }
 
-                return response
+                return response;
             } catch (error) {
-                this.errorMessage = error.response?.data?.message || 'Registration failed'
-                throw error
+                this.errorMessage = error.response?.data?.message || 'Registration failed';
+                throw error;
             } finally {
-                this.loading = false
+                this.loading = false;
             }
         },
         async refreshToken() {
@@ -103,10 +112,11 @@ export const useAuthStore = defineStore('auth', {
                     refresh_token: refresh,
                     user: this.user
                 })
-                return response
+                this.token = response.data.access_token;
+                return response;
             } catch (error) {
-                console.error('Token refresh failed:', error)
-                this.logoutUser()
+                console.error('Token refresh failed:', error);
+                this.logoutUser();
             }
         },
         async logoutUser() {
@@ -126,6 +136,7 @@ export const useAuthStore = defineStore('auth', {
                 // Clear authentication after the request is made
                 clearAuth();
                 this.user = null;
+                this.token = null;
                 this.isAuthenticated = false;
                 this.loading = false;
                 router.push('/login');
@@ -133,22 +144,28 @@ export const useAuthStore = defineStore('auth', {
         },
 
         clearError() {
-            this.errorMessage = null
+            this.errorMessage = null;
         },
         clearSuccess() {
-            this.successMessage = null
+            this.successMessage = null;
         },
         checkAuth() {
-            // const user = JSON.parse(localStorage.getItem('user')) || null;
-
-            const user = getUser();
-            if (user) {
-                this.user = user
-                this.isAuthenticated = true
+            const token = getToken();
+            const user = token ? getUser() : null;
+            if (token && user) {
+                this.user = user;
+                this.token = token;
+                this.isAuthenticated = true;
             } else {
-                this.user = null
-                this.isAuthenticated = false
+                this.user = null;
+                this.token = null;
+                this.isAuthenticated = false;
+
+                if (!token && user) {
+                    clearAuth();
+                }
             }
+            return this.isAuthenticated;
         }
     }
 })

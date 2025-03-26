@@ -91,6 +91,5 @@ const handleLogin = async () => {
 .card {
     width: 100%;
     max-width: 500px;
-    /* Adjust as needed */
 }
 </style>

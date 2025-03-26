@@ -146,9 +146,4 @@ class UserLogout(Resource):
         if not token:
             return {"error": "Missing Authorization Header"}, 401
 
-        jti = get_jwt().get("jti")
-        if not jti:
-            return {"error": "Invalid token"}, 422
-
-        current_app.blacklist.add(jti)
         return {"message": "Logged out successfully"}, 200

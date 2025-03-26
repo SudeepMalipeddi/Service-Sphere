@@ -214,7 +214,7 @@
                         </a>
                     </div>
                 </div>
-                <div v-else>
+                <div v-else class="alert alert-warning mt-3 mb-0">
                     <p>No documents uploaded by professional yet.</p>
                     <p>Please wait till professional uploads</p>
                 </div>
@@ -272,8 +272,6 @@ const toggleStatus = async (professional) => {
         const newStatus = professional.user?.is_active ? 'inactive' : 'active'
         console.log(professional.is_active)
         await adminStore.updateProfessionalActiveStatus(professional.id, newStatus)
-
-        // Show success message
         window.dispatchEvent(new CustomEvent('show-success', {
             detail: `Professional ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`
         }))
@@ -284,7 +282,6 @@ const toggleStatus = async (professional) => {
         }))
     }
 }
-
 const showVerificationForm = (professional) => {
     selectedProfessional.value = professional
     verificationAction.value = 'approve'
@@ -316,11 +313,7 @@ const submitVerification = async () => {
             verificationAction.value,
             verificationMessage.value
         )
-
-        // Hide form
         isVerificationFormVisible.value = false
-
-        // Show success message
         window.dispatchEvent(new CustomEvent('show-success', {
             detail: `Professional ${verificationAction.value === 'approve' ? 'approved' : 'rejected'} successfully`
         }))
@@ -345,9 +338,8 @@ const clearFilters = () => {
     adminStore.fetchProfessionals()
 }
 
-// Lifecycle hooks
 onMounted(async () => {
-    // Check for query parameters and set filters
+
     const { status, service_id, verification_status } = route.query
     if (status || service_id || verification_status) {
         filters.status = status || ''
@@ -356,7 +348,6 @@ onMounted(async () => {
         adminStore.setProfessionalFilters(filters)
     }
 
-    // Fetch data
     await Promise.all([
         adminStore.fetchProfessionals(),
         serviceStore.fetchServices({ show_inactive: true })
