@@ -12,11 +12,18 @@ from models import db,User
 from resources.admin import AdminDashboardResource,AdminCustomersResource,AdminProfessionalsResource
 from resources.auth import UserRegister, UserLogin, UserRefresh, UserLogout
 from resources.customer import CustomerResource, CustomerListResource
+from resources.export import ExportResource
 from resources.professional import ProfessionalResource, ProfessionalListResource, ProfessionalVerificationResource
 from resources.service import ServiceResource, ServiceListResource
 from resources.service_request import ServiceRequestResource,ServiceRequestActionResource,ServiceRequestListResource,RejectedServiceRequest,RejectedServiceRequestResource
 from resources.notification import NotificationResource, NotificationListResource
 from resources.review import ReviewListResource,ReviewResource
+
+from mail_config import init_mail
+
+# celery
+from celery_config import create_celery_app
+
 
 def create_app(test_config=None):
     app = Flask(__name__,static_folder='static')
@@ -32,8 +39,17 @@ def create_app(test_config=None):
             JWT_BLACKLIST_ENABLED=True,
             JWT_BLACKLIST_TOKEN_CHECKS=['access', 'refresh'],
             UPLOAD_FOLDER=os.path.join(app.root_path, 'static', 'uploads'),
-            MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max upload
+            MAX_CONTENT_LENGTH=16 * 1024 * 1024,
             REDIS_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
+
+
+            MAIL_SERVER=('localhost'),
+            MAIL_PORT=1025,
+            MAIL_USE_TLS=False,
+            MAIL_USE_SSL=False,
+            MAIL_USERNAME=os.environ.get('MAIL_USERNAME',None),
+            MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD',None),
+            MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@household-services.com'),
         )
     else:
         app.config.from_mapping(test_config)
@@ -42,13 +58,10 @@ def create_app(test_config=None):
     db.init_app(app)
     jwt = JWTManager(app)
     api = Api(app)
-    @jwt.token_in_blocklist_loader
-    def check_if_token_in_blocklist(jwt_header, jwt_payload):
-        jti = jwt_payload['jti']
-        return jti in app.blacklist
+    celery = create_celery_app(app)
+    app.celery = celery
+    init_mail(app)
     
-
-    app.blacklist = set()
     
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'documents'), exist_ok=True)
     os.makedirs(os.path.join(app.root_path, 'static', 'exports'), exist_ok=True)
@@ -65,6 +78,7 @@ def create_app(test_config=None):
     api.add_resource(AdminDashboardResource, '/api/admin/dashboard')
     api.add_resource(AdminProfessionalsResource, '/api/admin/professionals')
     api.add_resource(AdminCustomersResource, '/api/admin/customers')
+    api.add_resource(ExportResource, '/api/admin/export')
 
     # Customer endpoints
     api.add_resource(CustomerResource, '/api/customers/<int:customer_id>')
@@ -114,9 +128,10 @@ def create_app(test_config=None):
             db.session.commit()
             print('Admin user created')
 
-    return app,migrate
+    return app,migrate,celery
 
-app,migrate = create_app()
+app, migrate, celery = create_app()
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -204,7 +204,7 @@ class ServiceRequest(db.Model):
     request_date = db.Column(db.DateTime, default=datetime.utcnow)
     scheduled_date = db.Column(db.DateTime, nullable=False)
     completion_date = db.Column(db.DateTime)
-    status = db.Column(db.String(20), default='requested')  # 'requested', 'assigned', 'in_progress', 'completed', 'closed', 'cancelled'
+    status = db.Column(db.String(20), default='requested')  # 'requested', 'assigned', 'completed', 'closed', 'cancelled'
     remarks = db.Column(db.Text)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

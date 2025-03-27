@@ -137,14 +137,29 @@
                     </div>
                 </div>
 
-
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-transparent">
+                        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">Service Request Status</h5>
+                            <button class="btn btn-sm btn-outline-primary" @click="exportServiceRequests"
+                                :disabled="exportLoading" title="Export service requests to CSV">
+                                <i class="bi bi-download me-1"></i>
+                                <span v-if="exportLoading">
+                                    <span class="spinner-border spinner-border-sm" role="status"
+                                        aria-hidden="true"></span>
+                                    Exporting...
+                                </span>
+                                <span v-else>Export</span>
+                            </button>
                         </div>
                         <div class="card-body">
                             <canvas ref="requestStatusChartRef" height="200"></canvas>
+                        </div>
+                        <div v-if="exportStatus" class="card-footer bg-transparent text-center">
+                            <div :class="['export-status', exportStatus.type]">
+                                <i :class="['bi', exportStatus.icon]"></i>
+                                {{ exportStatus.message }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -157,6 +172,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import Chart from 'chart.js/auto';
 import { useAdminStore } from '@/stores/admin';
+import api from '@/api';
 
 const adminStore = useAdminStore();
 const dashboardStats = computed(() => adminStore.dashboardStats);
@@ -164,6 +180,47 @@ const loading = computed(() => adminStore.loading);
 
 const statusChart = ref(null);
 const requestStatusChartRef = ref(null);
+
+const exportLoading = ref(false);
+const exportStatus = ref(null);
+
+const exportServiceRequests = async () => {
+    try {
+        exportLoading.value = true;
+        exportStatus.value = null;
+
+        const response = await api.post('/admin/export');
+
+        if (response.status === 202) {
+            exportStatus.value = {
+                type: 'success',
+                message: 'Export started successfully. You will be notified when complete.',
+                icon: 'bi-check-circle'
+            };
+
+            setTimeout(() => {
+                if (exportStatus.value && exportStatus.value.type === 'success') {
+                    exportStatus.value = null;
+                }
+            }, 5000);
+        } else {
+            exportStatus.value = {
+                type: 'error',
+                message: response.data.message || 'Export failed. Please try again.',
+                icon: 'bi-exclamation-circle'
+            };
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        exportStatus.value = {
+            type: 'error',
+            message: 'Failed to start export. Please try again later.',
+            icon: 'bi-exclamation-circle'
+        };
+    } finally {
+        exportLoading.value = false;
+    }
+}
 
 const renderRequestStatusChart = async () => {
     await nextTick();
@@ -273,5 +330,25 @@ watch(dashboardStats, async () => {
 .activity-label {
     color: #666;
     margin-bottom: 0;
+}
+
+.export-status {
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.export-status.success {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.export-status.error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.export-status i {
+    margin-right: 5px;
 }
 </style>

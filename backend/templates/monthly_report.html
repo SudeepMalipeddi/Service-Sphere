@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Activity Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            color: #2c3e50;
+        }
+
+        .header {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .summary-item {
+            margin-bottom: 10px;
+        }
+
+        .summary-item .label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+
+        .summary-item .value {
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .status {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+
+        .status-closed {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .status-requested {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status-assigned {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Monthly Activity Report</h1>
+        <p>Customer: {{ customer_name }}</p>
+        <p>Period: {{ month }}</p>
+    </div>
+
+    <div class="summary">
+        <h2>Summary</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="label">Total Requests:</div>
+                <div class="value">{{ total_requests }}</div>
+            </div>
+            <div class="summary-item">
+                <div class="label">Completed Requests:</div>
+                <div class="value">{{ completed_requests }}</div>
+            </div>
+            <div class="summary-item">
+                <div class="label">Pending Requests:</div>
+                <div class="value">{{ pending_requests }}</div>
+            </div>
+            <div class="summary-item">
+                <div class="label">Cancelled Requests:</div>
+                <div class="value">{{ cancelled_requests }}</div>
+            </div>
+            <div class="summary-item">
+                <div class="label">Total Spent:</div>
+                <div class="value">₹{{ total_spent }}</div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Service Requests</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Service</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Professional</th>
+                <th>Price</th>
+                <th>Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request.id }}</td>
+                <td>{{ request.service_name }}</td>
+                <td>
+                    <span class="status status-{{ request.status }}">{{ request.status }}</span>
+                </td>
+                <td>{{ request.request_date }}</td>
+                <td>{{ request.professional_name or '-' }}</td>
+                <td>₹{{ request.price }}</td>
+                <td>{{ request.rating or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Thank you for using Service Sphere!</p>
+    </div>
+</body>
+
+</html>

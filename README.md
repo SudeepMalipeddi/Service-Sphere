@@ -15,3 +15,9 @@ This is a simple web application for a multi-user app (requires one admin and ot
 git clone
 cd household-services
 ```
+
+~/go/bin/MailHog
+
+celery -A app.celery worker --loglevel=info
+
+celery -A app.celery beat --loglevel=info
