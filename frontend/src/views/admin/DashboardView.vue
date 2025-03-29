@@ -121,7 +121,7 @@
                                 <div class="col-4">
                                     <div class="activity-stat">
                                         <h3 class="activity-number">{{ dashboardStats.recent_activity.new_professionals
-                                            }}</h3>
+                                        }}</h3>
                                         <p class="activity-label">New Professionals</p>
                                     </div>
                                 </div>

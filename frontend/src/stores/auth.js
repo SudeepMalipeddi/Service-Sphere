@@ -69,25 +69,8 @@ export const useAuthStore = defineStore('auth', {
             try {
 
                 const response = await register(userData);
-                setAuth({
-                    access_token: response.data.access_token,
-                    refresh_token: response.data.refresh_token,
-                    user: response.data.user
-                })
 
-                // Update state
-                this.user = response.data.user;
-                this.isAuthenticated = true;
-                this.token = response.data.access_token;
-                this.successMessage = 'Registration successful';
-
-                if (this.user.role === 'customer') {
-                    router.push('/customer');
-                } else if (this.user.role === 'professional') {
-                    router.push('/professional');
-                } else {
-                    router.push('/');
-                }
+                router.push('/login');
 
                 return response;
             } catch (error) {

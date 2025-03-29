@@ -196,8 +196,6 @@ const createRequest = async () => {
         };
 
         await requestStore.createNewRequest(requestData);
-
-        console.log('Service request created successfully');
         window.location.href = '/customer/requests';
     } catch (error) {
         console.error('Create request error:', error);

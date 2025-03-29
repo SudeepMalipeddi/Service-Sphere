@@ -5,11 +5,14 @@ from utils import admin_required
 from models import *
 from sqlalchemy import func,desc
 import datetime
+from extensions import cache
 
+from .professional import ProfessionalResource
 class AdminDashboardResource(Resource):
 
     @jwt_required()
     @admin_required
+    @cache.cached(timeout=30,key_prefix='admin_dashboard')
     def get(self):
         total_customers = Customer.query.count()
         total_professionals = Professional.query.count()
@@ -65,6 +68,7 @@ class AdminProfessionalsResource(Resource):
 
     @jwt_required()
     @admin_required
+    @cache.cached(timeout=30, key_prefix='admin_professionals', query_string=True)
     def get(self):
 
         status = request.args.get('status')
@@ -109,6 +113,7 @@ class AdminProfessionalsResource(Resource):
         try:
             professional.user.save_to_db()
 
+            cache.clear()
             notification = Notification(
                 user_id=professional.user_id,
                 type='account_status',
@@ -129,6 +134,7 @@ class AdminCustomersResource(Resource):
 
     @jwt_required()
     @admin_required
+    @cache.cached(timeout=30, key_prefix='admin_customers', query_string=True)
     def get(self):
 
         status = request.args.get('status')
@@ -178,6 +184,8 @@ class AdminCustomersResource(Resource):
             )
 
             notification.save_to_db()
+
+            cache.clear()
 
             return {
                 "message": f"Customer account has been {'activated' if customer.user.is_active else 'deactivated'}",

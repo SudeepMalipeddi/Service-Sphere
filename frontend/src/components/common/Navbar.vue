@@ -85,7 +85,7 @@
                                     <a class="dropdown-item" href="#" :class="{ 'bg-light': !notification.is_read }"
                                         @click.prevent="markAsRead(notification.id)">
                                         <small class="text-muted d-block">{{ formatDate(notification.created_at)
-                                        }}</small>
+                                            }}</small>
                                         {{ notification.message }}
                                     </a>
                                 </li>

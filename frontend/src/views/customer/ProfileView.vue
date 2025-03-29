@@ -151,7 +151,6 @@ const updateProfile = async () => {
             localStorage.setItem('user', JSON.stringify(user));
         }
 
-        alert('Profile updated successfully');
         editMode.value = false;
         await fetchProfile();
     } catch (err) {

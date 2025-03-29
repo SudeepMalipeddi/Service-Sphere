@@ -2,7 +2,7 @@
   <div class="container">
     <div class="bg-primary text-white text-center py-5 mb-5">
       <div class="container">
-        <h1 class="display-4">A-Z Household Services</h1>
+        <h1 class="display-4">Service Sphere</h1>
         <p class="lead">Your one-stop platform for all household services</p>
 
         <div class="mt-4">

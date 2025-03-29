@@ -20,4 +20,20 @@ api.interceptors.request.use(
     error => Promise.reject(error)
 )
 
+api.interceptors.response.use(
+    response => {
+        // Handle successful responses
+        return response;
+    },
+    error => {
+        // Handle errors
+        if (error.response.status === 401) {
+            clearAuth();
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+)
+
+
 export default api;

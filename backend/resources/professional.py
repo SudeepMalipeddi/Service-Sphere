@@ -6,7 +6,7 @@ from flask import request, current_app
 from werkzeug.utils import secure_filename
 import os
 import uuid
-
+from extensions import cache
 class ProfessionalResource(Resource):
     def get(self, professional_id):
         professional = Professional.query.get_or_404(professional_id)
@@ -56,6 +56,7 @@ class ProfessionalResource(Resource):
         
         try:
             professional.save_to_db()
+            cache.clear()
             return {"message": "Professional updated successfully", "professional": professional.to_dict()}, 200
         except Exception as e:
             return {"message": f"An error occurred: {str(e)}"}, 500
@@ -71,6 +72,8 @@ class ProfessionalResource(Resource):
             user = professional.user
             professional.delete_from_db()
             user.delete_from_db()
+
+            cache.clear()
             
             return {"message": "Professional deleted successfully"}, 200
         except Exception as e:
@@ -132,6 +135,7 @@ class ProfessionalVerificationResource(Resource):
         try:
             professional.save_to_db()
             
+            cache.clear()
             notification = Notification(
                 user_id = professional.user_id,
                 type='verification',
@@ -158,10 +162,6 @@ class ProfessionalVerificationResource(Resource):
             print("Not authorized to update this profile")
             return {"message": "Not authorized to update this profile"}, 403
 
-        # if professional.user_id != current_user_id:
-        #     print("Not authorized to update this profile")
-        #     return {"message": "Not authorized to update this profile"}, 403
-        
         if 'document' not in request.files:
             return {"message": "No document part in the request"}, 400
         
@@ -195,6 +195,7 @@ class ProfessionalVerificationResource(Resource):
             )
             notification.save_to_db()
 
+            cache.clear()
             return {
                 "message": "Document uploaded successfully",
                 "professional": professional.to_dict()

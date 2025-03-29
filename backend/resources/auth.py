@@ -114,7 +114,8 @@ class UserLogin(Resource):
                     "name": user.name,
                     "role": user.role,
                     "customer_id": customer_id,  
-                    "professional_id": professional_id,  
+                    "professional_id": professional_id,
+                    "is_active": user.is_active,
                 },
                 "access_token": access_token,
                 "refresh_token": refresh_token

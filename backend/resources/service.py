@@ -1,13 +1,13 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required,get_jwt_identity
+from flask_jwt_extended import jwt_required
 from models import Service,Professional
 from utils import admin_required
-from sqlalchemy import or_, and_
-import json
+from sqlalchemy import or_
 from flask import request
-
+from extensions import cache
 class ServiceResource(Resource):
 
+    @cache.memoize(timeout=30)
     def get(self,service_id):
 
         service = int(service_id)
@@ -39,7 +39,7 @@ class ServiceResource(Resource):
 
         try:
             service.save_to_db()
-
+            cache.clear()
             return {"message": "Service updated successfully", "service": service.to_dict()}, 200
         
         except Exception as e:
@@ -57,6 +57,7 @@ class ServiceResource(Resource):
         
         try:
             service.delete_from_db()
+            cache.clear()
             return {"message": "Service deleted successfully"}, 200
         
         except Exception as e:
@@ -65,6 +66,7 @@ class ServiceResource(Resource):
 
 class ServiceListResource(Resource):
 
+    @cache.cached(timeout=30,key_prefix='services_list',query_string=True)
     def get(self):
         search_query = request.args.get('q','')
         show_inactive = request.args.get('show_inactive','false').lower() == 'true'
@@ -118,6 +120,7 @@ class ServiceListResource(Resource):
 
         try:
             service.save_to_db()
+            cache.clear()
             return {"message": "Service created successfully", "service": service.to_dict()}, 201   
         except Exception as e:
             return {"message": f"An error occurred : {str(e)}"}, 500

@@ -29,7 +29,8 @@ def create_celery_app(app=None):
             },
             'check_overdue_requests': {
                 'task': 'tasks.reminder_tasks.check_overdue_requests',
-                'schedule': crontab(hour=9, minute=0),
+                # 'schedule': crontab(hour=9, minute=0),
+                'schedule': crontab(minute='*/1'),
             },
             'monthly-reports':{
                 'task':'tasks.report_tasks.send_monthly_activity_report',

@@ -11,7 +11,7 @@ def init_mail(app):
         MAIL_USE_TLS=app.config.get('MAIL_USE_TLS', False),
         MAIL_USERNAME=app.config.get('MAIL_USERNAME', None),
         MAIL_PASSWORD=app.config.get('MAIL_PASSWORD', None),
-        MAIL_DEFAULT_SENDER=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@household-services.com')
+        MAIL_DEFAULT_SENDER=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@servicesphere.com')
     )
     mail.init_app(app)
     return mail

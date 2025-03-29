@@ -296,10 +296,10 @@ def send_report_email(customer, report_path, month, year):
         msg.body = f"""Dear {customer.user.name},
 
 Please find attached your monthly activity report for {month_name}.
-Thank you for using our Household Services platform.
+Thank you for using our platform.
 
 Regards,
-The Household Services Team
+The Service Sphere Team
 """
         with open(report_path, 'r') as f:
             msg.html = f.read()

@@ -3,6 +3,7 @@ from models.models import ServiceRequest, Professional, Notification
 from flask import current_app
 from mail_config import mail
 from flask_mail import Message
+from datetime import datetime
 
 @shared_task
 def send_daily_reminders():
@@ -66,3 +67,39 @@ def send_external_notification(user, message):
     
     current_app.logger.info(f"Notification for {user.name} ({user.email}): {message}")
     return False
+
+
+@shared_task
+def check_overdue_requests():
+    """
+    Check for service requests that are overdue
+    """
+    # Find requests that are scheduled for completion but still open
+    today = datetime.utcnow()
+    overdue_requests = ServiceRequest.query.filter(
+        ServiceRequest.status.in_(['assigned']),
+        ServiceRequest.scheduled_date < today
+    ).all()
+    
+    for request in overdue_requests:
+        # Notify customer
+        customer_notification = Notification(
+            user_id=request.customer.user_id,
+            type='overdue',
+            message=f"Your service request #{request.id} is overdue. We'll follow up with the professional."
+        )
+        customer_notification.save_to_db()
+        
+        # Notify professional
+        if request.professional:
+            prof_notification = Notification(
+                user_id=request.professional.user_id,
+                type='overdue',
+                message=f"Service request #{request.id} is overdue. Please update the status or contact the customer."
+            )
+            prof_notification.save_to_db()
+            
+            # Send notification through external service
+            send_external_notification(request.professional.user, prof_notification.message)
+    
+    return f"Processed {len(overdue_requests)} overdue requests"

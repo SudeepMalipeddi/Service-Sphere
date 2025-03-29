@@ -159,10 +159,6 @@ const clearFilters = () => {
 const updateStatus = async (id, status) => {
     try {
         await adminStore.updateCustomerActiveStatus(id, status);
-        const message = `Customer account ${status === 'active' ? 'activated' : 'deactivated'} successfully`;
-        alert(message);
-
-
         await adminStore.fetchCustomers();
     } catch (err) {
         console.error(`Failed to ${status} customer:`, err);

@@ -1,8 +1,9 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from extensions import db
 
-db = SQLAlchemy()
+# db = SQLAlchemy()
 
 class User(db.Model):
     
@@ -21,7 +22,6 @@ class User(db.Model):
     professional = db.relationship('Professional', backref='user', uselist=False, cascade="all, delete-orphan")
     notifications = db.relationship('Notification', backref='user', cascade="all, delete-orphan")
     export_tasks = db.relationship('ExportTask', backref='user', cascade="all, delete-orphan")
-    monthly_reports = db.relationship('MonthlyReport', backref='user', cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -383,34 +383,3 @@ class ExportTask(db.Model):
             'completed_at': self.completed_at.isoformat() if self.completed_at else None
         }
 
-
-class MonthlyReport(db.Model):
-    
-    __tablename__ = 'monthly_reports'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    month = db.Column(db.Integer, nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    report_type = db.Column(db.String(50), nullable=False) 
-    file_path = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def save_to_db(self):
-        db.session.add(self)
-        db.session.commit()
-        
-    def delete_from_db(self):
-        db.session.delete(self)
-        db.session.commit()
-        
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'month': self.month,
-            'year': self.year,
-            'report_type': self.report_type,
-            'file_path': self.file_path,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }

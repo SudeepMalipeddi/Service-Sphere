@@ -1,13 +1,14 @@
 from flask import Flask
 from flask_restful import Api
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_cors import CORS
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
-from models import db,User
+# from models import db,User
+from models import User
+from extensions import db,cache,jwt
 
 from resources.admin import AdminDashboardResource,AdminCustomersResource,AdminProfessionalsResource
 from resources.auth import UserRegister, UserLogin, UserRefresh, UserLogout
@@ -43,20 +44,27 @@ def create_app(test_config=None):
             REDIS_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
 
 
+            CACHE_TYPE='RedisCache',
+            CACHE_REDIS_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
+            CACHE_DEFAULT_TIMEOUT=30,
+
             MAIL_SERVER=('localhost'),
             MAIL_PORT=1025,
             MAIL_USE_TLS=False,
             MAIL_USE_SSL=False,
             MAIL_USERNAME=os.environ.get('MAIL_USERNAME',None),
             MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD',None),
-            MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@household-services.com'),
+            MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@servicesphere.com'),
         )
     else:
         app.config.from_mapping(test_config)
 
     CORS(app)
     db.init_app(app)
-    jwt = JWTManager(app)
+    
+    jwt.init_app(app)
+    cache.init_app(app)
+
     api = Api(app)
     celery = create_celery_app(app)
     app.celery = celery
