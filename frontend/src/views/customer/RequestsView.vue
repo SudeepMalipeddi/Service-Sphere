@@ -164,7 +164,7 @@ import { useRequestStore } from '@/stores/requests';
 import { formatPrice, formatDuration, formatDateTime } from '@/utils/formatters';
 
 const requestStore = useRequestStore();
-const { fetchRequests, cancelRequest, updateExistingRequest, performRequestAction, setFilterOptions, clearFilters, submitReview } = requestStore;
+const { fetchRequests, cancelRequest, updateExistingRequest, performRequestAction, setFilterOptions, submitReview } = requestStore;
 const filters = ref({ status: '', dateFrom: '', dateTo: '' });
 const expandedRequestId = ref(null);
 
@@ -179,7 +179,16 @@ const filteredRequests = computed(() => requestStore.filteredRequests);
 
 const minDate = ref(new Date().toISOString().slice(0, 16));
 
+const clearFilters = () => {
+    filters.value = {
+        status: '',
+        dateFrom: '',
+        dateTo: ''
+    }
+    requestStore.clearFilters()
 
+    fetchRequests();
+}
 
 
 const getStatusBadgeClass = (status) => {

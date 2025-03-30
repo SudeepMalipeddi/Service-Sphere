@@ -27,7 +27,13 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-static/
+static/exports/*
+static/reports/*
+static/uploads/documents/*
+
+!static/exports/.gitkeep
+!static/reports/.gitkeep
+!static/uploads/documents/.gitkeep
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

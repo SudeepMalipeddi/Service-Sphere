@@ -31,8 +31,8 @@
                     <div class="col-md-6 mb-3">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="Search services..."
-                                v-model="searchQuery">
-                            <button class="btn btn-outline-secondary" @click="searchQuery = ''">
+                                v-model="searchQuery" @input="filterServices">
+                            <button class="btn btn-outline-secondary" @click="clearSearch">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
@@ -200,6 +200,20 @@ watch([showInactive, showUnavailable], () => {
         showUnavailable: showUnavailable.value
     });
 });
+
+
+watch(searchQuery, (newQuery) => {
+    serviceStore.setSearchQuery(newQuery);
+});
+
+
+const clearSearch = () => {
+    searchQuery.value = '';
+    serviceStore.setSearchQuery('');
+};
+const filterServices = () => {
+    serviceStore.setSearchQuery(searchQuery.value);
+};
 
 onMounted(async () => {
     loading.value = true;

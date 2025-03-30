@@ -14,7 +14,7 @@
                     </div>
                     <div v-else>
                         <p>Thank you for submitting your documents. Your profile is currently under review.</p>
-                        <p>This process typically takes 1-2 business days. You'll be notified once your profile is
+                        <p>You'll be notified once your profile is
                             verified.</p>
                     </div>
                 </div>
@@ -174,7 +174,7 @@
                                             <div>
                                                 <p class="mb-1">{{ notification.message }}</p>
                                                 <small class="text-muted">{{ formatDateTime(notification.created_at)
-                                                }}</small>
+                                                    }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -222,7 +222,7 @@
                                                         :class="{ 'filled': i <= review.rating }">★</span>
                                                 </div>
                                                 <small class="ms-2 text-muted">{{ formatDate(review.created_at)
-                                                }}</small>
+                                                    }}</small>
                                             </div>
                                             <p class="mb-0 small">{{ review.comment || 'No comment provided' }}</p>
                                         </div>
